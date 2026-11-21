@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kính Tặng Thầy Giáo Vật Lý - Tri Ân Sóng Dừng</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #080c14;
+            --cyan-glow: rgba(0, 243, 255, 0.8);
+            --pink-glow: rgba(255, 0, 127, 0.8);
+            --gold-glow: rgba(255, 215, 0, 0.9);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .font-physics { font-family: 'Fira Code', monospace; }
+        .font-serif-header { font-family: 'Playfair Display', serif; }
+
+        /* Fullscreen Canvas */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Matte Chalkboard Glass Cards */
+        .glass-card {
+            background: rgba(12, 18, 30, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), inset 0 0 12px rgba(0, 243, 255, 0.05);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none; /* Let touch/clicks pass through to global listener */
+        }
+
+        .glass-card-magenta {
+            border-color: rgba(255, 0, 127, 0.45);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), inset 0 0 12px rgba(255, 0, 127, 0.05);
+        }
+
+        .glass-card-gold {
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 16px 40px rgba(255, 215, 0, 0.15), inset 0 0 18px rgba(255, 215, 0, 0.08);
+        }
+
+        @keyframes tap-pulse {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        .tap-prompt {
+            animation: tap-pulse 1.6s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen relative flex flex-col justify-between items-center overflow-hidden">
+
+    <!-- Interactive Canvas Layer -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Top Bar Header -->
+    <header class="w-full p-4 md:p-6 flex justify-between items-center z-20 pointer-events-none">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span class="font-physics text-xs text-cyan-400 tracking-widest uppercase">Vật Lý Tri Ân · Sóng Dừng</span>
+            </div>
+            <h1 class="font-serif-header text-xl md:text-3xl text-slate-100 font-bold tracking-wide mt-1">
+                Kính Tặng Thầy Giáo Vật Lý
+            </h1>
+        </div>
+
+        <div>
+            <span id="badge-status" class="font-physics text-xs px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-300 backdrop-blur-md">
+                Chạm màn hình để bắt đầu
+            </span>
+        </div>
+    </header>
+
+    <!-- MAIN INTERACTIVE CONTAINER FOR WISH CARDS -->
+    <main id="main-container" class="w-full max-w-5xl flex-1 relative z-20 pointer-events-none px-4 flex flex-col justify-between py-4">
+
+        <!-- PARALLEL TOP CARD (Standing Wave Antinode) -->
+        <div id="card-top" class="w-full flex justify-center opacity-0 translate-y-[-20px] transition-all duration-700">
+            <div class="glass-card glass-card-gold p-4 md:p-5 rounded-2xl max-w-xl text-center">
+                <div class="flex items-center justify-center gap-2 mb-1 text-amber-300 font-physics text-xs tracking-widest uppercase font-semibold">
+                    <span>⚡ BỤNG SÓNG SỰ NGHIỆP</span>
+                </div>
+                <p class="text-sm md:text-base text-amber-100 font-bold leading-relaxed font-serif-header">
+                    "Kính chúc Thầy luôn thăng hoa và rực rỡ nhất trên con đường sự nghiệp."
+                </p>
+            </div>
+        </div>
+
+        <!-- CENTER AREA: STEPPED SEQUENTIAL WISH CARDS -->
+        <div class="w-full flex justify-center items-center my-auto relative min-h-[220px]">
+
+            <!-- STEP 0 OVERLAY -->
+            <div id="overlay-start" class="glass-card p-6 md:p-8 rounded-2xl text-center max-w-md border-cyan-400/50 shadow-2xl">
+                <div class="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto mb-3 text-cyan-400 text-xl font-physics">
+                    ~
+                </div>
+                <h2 class="font-serif-header text-2xl text-slate-100 font-bold mb-2">Thí Nghiệm Mô Phỏng Sóng</h2>
+                <p class="text-xs md:text-sm text-slate-300 mb-5 leading-relaxed">
+                    Khám phá hành trình lan truyền sóng trên hệ trục tọa độ và đón nhận 5 lời tri ân kính gửi Thầy.
+                </p>
+                <div class="tap-prompt inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs md:text-sm tracking-wide">
+                    <span>👉 CHẠM VÀO MÀN HÌNH ĐỂ BẮT ĐẦU</span>
+                </div>
+            </div>
+
+            <!-- STEP 1 CARD (Position 30%: Amplitude) -->
+            <div id="card-step-1" class="glass-card p-5 md:p-6 rounded-2xl max-w-md absolute opacity-0 scale-95 transition-all duration-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-physics text-xs text-cyan-400 tracking-wider">TỌA ĐỘ I // x ≈ 30%</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                </div>
+                <h2 class="font-serif-header text-xl md:text-2xl text-cyan-200 font-bold mb-2">
+                    BIÊN ĐỘ NHIỆT HUYẾT
+                </h2>
+                <p class="text-xs md:text-sm text-slate-200 leading-relaxed italic mb-4">
+                    "Chúc thầy luôn giữ biên độ đam mê cực đại trên bục giảng, truyền lượng tử tri thức đến từng thế hệ học trò."
+                </p>
+                <div class="pt-3 border-t border-cyan-500/20 flex justify-between items-center text-[11px] font-physics text-cyan-400">
+                    <span>y₁ = A·sin(kx - ωt)</span>
+                    <span class="tap-prompt text-amber-300 font-semibold">Chạm màn hình để tiếp tục ➔</span>
+                </div>
+            </div>
+
+            <!-- STEP 2 CARD (Position 60%: Acceleration) -->
+            <div id="card-step-2" class="glass-card p-5 md:p-6 rounded-2xl max-w-md absolute opacity-0 scale-95 transition-all duration-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-physics text-xs text-cyan-400 tracking-wider">TỌA ĐỘ II // x ≈ 60%</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                </div>
+                <h2 class="font-serif-header text-xl md:text-2xl text-cyan-200 font-bold mb-2">
+                    GIA TỐC THÀNH CÔNG
+                </h2>
+                <p class="text-xs md:text-sm text-slate-200 leading-relaxed italic mb-4">
+                    "Kính chúc mọi dự định của thầy luôn có gia tốc dương mạnh mẽ, vượt qua mọi lực ma sát của cuộc sống."
+                </p>
+                <div class="pt-3 border-t border-cyan-500/20 flex justify-between items-center text-[11px] font-physics text-cyan-400">
+                    <span>a = F/m > 0</span>
+                    <span class="tap-prompt text-amber-300 font-semibold">Chạm màn hình để tiếp tục ➔</span>
+                </div>
+            </div>
+
+            <!-- STEP 3 CARD (Position 90%: Spectrum) -->
+            <div id="card-step-3" class="glass-card p-5 md:p-6 rounded-2xl max-w-md absolute opacity-0 scale-95 transition-all duration-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-physics text-xs text-cyan-400 tracking-wider">TỌA ĐỘ III // x ≈ 90%</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                </div>
+                <h2 class="font-serif-header text-xl md:text-2xl text-cyan-200 font-bold mb-2">
+                    QUANG PHỔ RỰC RỠ
+                </h2>
+                <p class="text-xs md:text-sm text-slate-200 leading-relaxed italic mb-4">
+                    "Như ánh sáng trắng qua lăng kính, mong cuộc đời thầy luôn tán sắc thành những dải màu tươi sáng và may mắn nhất."
+                </p>
+                <div class="pt-3 border-t border-cyan-500/20 flex justify-between items-center text-[11px] font-physics text-cyan-400">
+                    <span>E = h·f = h·c/λ</span>
+                    <span class="tap-prompt text-amber-300 font-semibold">Chạm màn hình để tiếp tục ➔</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PARALLEL BOTTOM CARD (Standing Wave Node) -->
+        <div id="card-bottom" class="w-full flex justify-center opacity-0 translate-y-[20px] transition-all duration-700">
+            <div class="glass-card glass-card-gold p-4 md:p-5 rounded-2xl max-w-xl text-center">
+                <div class="flex items-center justify-center gap-2 mb-1 text-amber-300 font-physics text-xs tracking-widest uppercase font-semibold">
+                    <span>⚓ NÚT SÓNG BÌNH YÊN</span>
+                </div>
+                <p class="text-sm md:text-base text-amber-100 font-bold leading-relaxed font-serif-header">
+                    "Giữa cuộc sống vạn biến, kính chúc thầy luôn giữ được một điểm nút tĩnh tại, an nhiên, vững chãi và hạnh phúc."
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Footer Timeline Indicator -->
+    <footer class="w-full p-4 z-30 flex justify-between items-center bg-slate-950/90 backdrop-blur-md border-t border-cyan-500/20 text-xs font-physics text-slate-400">
+        <div class="flex items-center gap-4">
+            <span id="label-step">Bước: 0 / 5</span>
+            <span class="hidden md:inline text-slate-600">|</span>
+            <span class="hidden md:inline">Công thức: y(x,t) = 2A·sin(kx)·cos(ωt)</span>
+        </div>
+        <button id="btn-restart" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700 flex items-center gap-1.5 pointer-events-auto">
+            🔄 Phát lại từ đầu
+        </button>
+    </footer>
+
+    <!-- MAIN LOGIC JAVASCRIPT -->
+    <script>
+        // State Machine Definitions for 5 Wish Cards
+        const STATE_START = 0;        // Step 0: Waiting for first click
+        const STATE_WAVE1_PART1 = 1;  // Cyan wave traveling x=0 -> x = 30% width
+        const STATE_PAUSE1 = 2;       // Frozen at 30% width, showing Card 1
+        const STATE_WAVE1_PART2 = 3;  // Cyan wave traveling x = 30% -> 60% width
+        const STATE_PAUSE2 = 4;       // Frozen at 60% width, showing Card 2
+        const STATE_WAVE1_PART3 = 5;  // Cyan wave traveling x = 60% -> 90% width
+        const STATE_PAUSE3 = 6;       // Frozen at 90% width, showing Card 3
+        const STATE_WAVE1_PART4 = 7;  // Cyan wave traveling x = 90% -> Right end
+        const STATE_WAVE2 = 8;        // Magenta wave traveling Right -> Left
+        const STATE_STANDING = 9;     // Superposition -> Standing Wave with Parallel Cards 4 & 5
+
+        let currentState = STATE_START;
+        let time = 0;
+        let wave1FrontX = 0;
+        let wave2FrontX = 0;
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        let posTarget1 = width * 0.30;
+        let posTarget2 = width * 0.60;
+        let posTarget3 = width * 0.90;
+        let waveSpeed = width * 0.006;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            posTarget1 = width * 0.30;
+            posTarget2 = width * 0.60;
+            posTarget3 = width * 0.90;
+            waveSpeed = width * 0.006;
+            calculateWaveNumber();
+        });
+
+        let amplitude = 48;
+        let k = 0.015;
+        let omega = 0.045;
+
+        function calculateWaveNumber() {
+            const numNodes = width > 768 ? 6 : 4;
+            const halfWavelength = width / numNodes;
+            const lambda = halfWavelength * 2;
+            k = (2 * Math.PI) / lambda;
+        }
+        calculateWaveNumber();
+
+        // UI Elements
+        const statusBadge = document.getElementById('badge-status');
+        const labelStep = document.getElementById('label-step');
+        const overlayStart = document.getElementById('overlay-start');
+        const cardStep1 = document.getElementById('card-step-1');
+        const cardStep2 = document.getElementById('card-step-2');
+        const cardStep3 = document.getElementById('card-step-3');
+        const cardTop = document.getElementById('card-top');
+        const cardBottom = document.getElementById('card-bottom');
+        const btnRestart = document.getElementById('btn-restart');
+
+        // Global Pointer Down Handler (Guaranteed to work on PC & Mobile)
+        window.addEventListener('pointerdown', (e) => {
+            // Ignore click if clicking directly on restart button
+            if (e.target.closest('#btn-restart')) return;
+
+            if (currentState === STATE_START) {
+                currentState = STATE_WAVE1_PART1;
+                overlayStart.style.opacity = '0';
+                setTimeout(() => overlayStart.style.display = 'none', 400);
+
+                statusBadge.textContent = "Sóng tới đang truyền...";
+                statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-cyan-950 border border-cyan-500/60 text-cyan-300 backdrop-blur-md";
+                labelStep.textContent = "Bước: 1 / 5";
+            } 
+            else if (currentState === STATE_PAUSE1) {
+                currentState = STATE_WAVE1_PART2;
+                hideCard(cardStep1);
+                statusBadge.textContent = "Sóng tiếp tục truyền đến Tọa độ II...";
+                labelStep.textContent = "Bước: 2 / 5";
+            } 
+            else if (currentState === STATE_PAUSE2) {
+                currentState = STATE_WAVE1_PART3;
+                hideCard(cardStep2);
+                statusBadge.textContent = "Sóng tiếp tục truyền đến Tọa độ III...";
+                labelStep.textContent = "Bước: 3 / 5";
+            }
+            else if (currentState === STATE_PAUSE3) {
+                currentState = STATE_WAVE1_PART4;
+                hideCard(cardStep3);
+                statusBadge.textContent = "Sóng tới hoàn tất -> Phát sóng ngược...";
+                labelStep.textContent = "Bước: 4 / 5";
+            }
+        });
+
+        btnRestart.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            resetSimulation();
+        });
+
+        function showCard(cardEl) {
+            cardEl.style.display = 'block';
+            setTimeout(() => {
+                cardEl.style.opacity = '1';
+                cardEl.style.transform = 'scale(1)';
+            }, 50);
+        }
+
+        function hideCard(cardEl) {
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                cardEl.style.display = 'none';
+            }, 400);
+        }
+
+        function resetSimulation() {
+            currentState = STATE_START;
+            time = 0;
+            wave1FrontX = 0;
+            wave2FrontX = width;
+
+            overlayStart.style.display = 'block';
+            setTimeout(() => {
+                overlayStart.style.opacity = '1';
+            }, 50);
+
+            hideCard(cardStep1);
+            hideCard(cardStep2);
+            hideCard(cardStep3);
+
+            cardTop.style.opacity = '0';
+            cardTop.style.transform = 'translateY(-20px)';
+            cardBottom.style.opacity = '0';
+            cardBottom.style.transform = 'translateY(20px)';
+
+            statusBadge.textContent = "Chạm màn hình để bắt đầu";
+            statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-300 backdrop-blur-md";
+            labelStep.textContent = "Bước: 0 / 5";
+        }
+
+        // CANVAS DRAWING FUNCTIONS
+        function drawAxesAndGrid() {
+            const centerY = height / 2;
+            const centerX = width / 2;
+
+            // Matte Grid
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
+            ctx.lineWidth = 1;
+            const gridSize = 45;
+
+            ctx.beginPath();
+            for (let x = centerX % gridSize; x < width; x += gridSize) {
+                ctx.moveTo(x, 0); ctx.lineTo(x, height);
+            }
+            for (let y = centerY % gridSize; y < height; y += gridSize) {
+                ctx.moveTo(0, y); ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            // Axis X
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = '#00f0ff';
+
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+
+            // Axis Y
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+
+            // Arrows
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.moveTo(width - 12, centerY - 5);
+            ctx.lineTo(width - 2, centerY);
+            ctx.lineTo(width - 12, centerY + 5);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(centerX - 5, 12);
+            ctx.lineTo(centerX, 2);
+            ctx.lineTo(centerX + 5, 12);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Axis Labels
+            ctx.font = '11px "Fira Code", monospace';
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
+            ctx.fillText('x (Truyền sóng) →', width - 140, centerY + 20);
+            ctx.fillText('y (Ly độ)', centerX + 12, 22);
+            ctx.fillText('O(0,0)', centerX + 8, centerY + 18);
+        }
+
+        function drawWave1(frontX) {
+            const centerY = height / 2;
+
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00f3ff';
+
+            ctx.beginPath();
+            let started = false;
+            for (let x = 0; x <= frontX; x += 3) {
+                const y = centerY - (amplitude * Math.sin(k * x - omega * time));
+                if (!started) { ctx.moveTo(x, y); started = true; } 
+                else { ctx.lineTo(x, y); }
+            }
+            ctx.stroke();
+
+            if (frontX > 0 && frontX < width) {
+                const endY = centerY - (amplitude * Math.sin(k * frontX - omega * time));
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(frontX, endY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawWave2(frontX) {
+            const centerY = height / 2;
+
+            ctx.strokeStyle = '#ff007f';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff007f';
+
+            ctx.beginPath();
+            let started = false;
+            for (let x = width; x >= frontX; x -= 3) {
+                const y = centerY - (amplitude * Math.sin(k * x + omega * time));
+                if (!started) { ctx.moveTo(x, y); started = true; }
+                else { ctx.lineTo(x, y); }
+            }
+            ctx.stroke();
+
+            if (frontX > 0 && frontX < width) {
+                const endY = centerY - (amplitude * Math.sin(k * frontX + omega * time));
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(frontX, endY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawStandingWave() {
+            const centerY = height / 2;
+
+            // Background component waves
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.18)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += 4) {
+                const y1 = centerY - (amplitude * Math.sin(k * x - omega * time));
+                if (x === 0) ctx.moveTo(x, y1); else ctx.lineTo(x, y1);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255, 0, 127, 0.18)';
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += 4) {
+                const y2 = centerY - (amplitude * Math.sin(k * x + omega * time));
+                if (x === 0) ctx.moveTo(x, y2); else ctx.lineTo(x, y2);
+            }
+            ctx.stroke();
+
+            // Standing Wave (Superposition Gold Line)
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3.5;
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = '#ffd700';
+
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += 3) {
+                const standingAmp = 2 * amplitude * Math.sin(k * x) * Math.cos(omega * time);
+                const y = centerY - standingAmp;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Nodes (Nút Sóng) & Antinodes (Bụng Sóng) Labels
+            const nodeDist = Math.PI / k;
+            for (let x = 0; x <= width; x += nodeDist) {
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00f0ff';
+                ctx.beginPath();
+                ctx.arc(x, centerY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(x, centerY, 7 + Math.sin(time * 0.1) * 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                if (x > 20 && x < width - 20) {
+                    ctx.font = '10px "Fira Code", monospace';
+                    ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
+                    ctx.fillText('Nút', x - 9, centerY + 20);
+                }
+
+                // Antinodes midpoints
+                const antinodeX = x + nodeDist / 2;
+                if (antinodeX < width - 20) {
+                    ctx.font = '10px "Fira Code", monospace';
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.85)';
+                    ctx.fillText('Bụng', antinodeX - 11, centerY - 20);
+                }
+            }
+        }
+
+        // ANIMATION ENGINE LOOP
+        function animate() {
+            ctx.fillStyle = '#080c14';
+            ctx.fillRect(0, 0, width, height);
+
+            drawAxesAndGrid();
+
+            if (currentState === STATE_START) {
+                // Idle background grid
+            }
+            else if (currentState === STATE_WAVE1_PART1) {
+                time += 1;
+                wave1FrontX += waveSpeed;
+                drawWave1(wave1FrontX);
+
+                if (wave1FrontX >= posTarget1) {
+                    wave1FrontX = posTarget1;
+                    currentState = STATE_PAUSE1;
+                    showCard(cardStep1);
+                    statusBadge.textContent = "Dừng tại x ≈ 30%: Chạm màn hình để tiếp tục";
+                    statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-amber-950 border border-amber-500/70 text-amber-300 backdrop-blur-md";
+                }
+            }
+            else if (currentState === STATE_PAUSE1) {
+                drawWave1(posTarget1);
+            }
+            else if (currentState === STATE_WAVE1_PART2) {
+                time += 1;
+                wave1FrontX += waveSpeed;
+                drawWave1(wave1FrontX);
+
+                if (wave1FrontX >= posTarget2) {
+                    wave1FrontX = posTarget2;
+                    currentState = STATE_PAUSE2;
+                    showCard(cardStep2);
+                    statusBadge.textContent = "Dừng tại x ≈ 60%: Chạm màn hình để tiếp tục";
+                    statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-amber-950 border border-amber-500/70 text-amber-300 backdrop-blur-md";
+                }
+            }
+            else if (currentState === STATE_PAUSE2) {
+                drawWave1(posTarget2);
+            }
+            else if (currentState === STATE_WAVE1_PART3) {
+                time += 1;
+                wave1FrontX += waveSpeed;
+                drawWave1(wave1FrontX);
+
+                if (wave1FrontX >= posTarget3) {
+                    wave1FrontX = posTarget3;
+                    currentState = STATE_PAUSE3;
+                    showCard(cardStep3);
+                    statusBadge.textContent = "Dừng tại x ≈ 90%: Chạm màn hình để tiếp tục";
+                    statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-amber-950 border border-amber-500/70 text-amber-300 backdrop-blur-md";
+                }
+            }
+            else if (currentState === STATE_PAUSE3) {
+                drawWave1(posTarget3);
+            }
+            else if (currentState === STATE_WAVE1_PART4) {
+                time += 1;
+                wave1FrontX += waveSpeed * 1.3;
+                drawWave1(wave1FrontX);
+
+                if (wave1FrontX >= width) {
+                    wave1FrontX = width;
+                    currentState = STATE_WAVE2;
+                    wave2FrontX = width;
+                    statusBadge.textContent = "Phát sóng ngược (Magenta)...";
+                    statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-pink-950 border border-pink-500/70 text-pink-300 backdrop-blur-md";
+                }
+            }
+            else if (currentState === STATE_WAVE2) {
+                time += 1;
+                drawWave1(width);
+
+                wave2FrontX -= waveSpeed * 1.4;
+                drawWave2(wave2FrontX);
+
+                if (wave2FrontX <= 0) {
+                    wave2FrontX = 0;
+                    currentState = STATE_STANDING;
+
+                    cardTop.style.opacity = '1';
+                    cardTop.style.transform = 'translateY(0)';
+                    cardBottom.style.opacity = '1';
+                    cardBottom.style.transform = 'translateY(0)';
+
+                    statusBadge.textContent = "Giao thoa Sóng Dừng Hoàn Hảo!";
+                    statusBadge.className = "font-physics text-xs px-3.5 py-1.5 rounded-full bg-amber-950 border border-amber-400 text-amber-300 backdrop-blur-md shadow-lg shadow-amber-500/20";
+                    labelStep.textContent = "Bước: 5 / 5 (Hoàn tất)";
+                }
+            }
+            else if (currentState === STATE_STANDING) {
+                time += 1;
+                drawStandingWave();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = function() {
+            animate();
+        };
+    </script>
+</body>
+</html>
